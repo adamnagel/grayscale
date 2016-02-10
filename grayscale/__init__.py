@@ -1,6 +1,11 @@
+'''
+curl http://localhost:5000/test_thing/interface
+curl --data '{"Param1": 1}' -H 'Content-Type:application/json;charset=UTF-8' http://localhost:5000/test_thing/solve_nonlinear
+'''
+
 from openmdao.core.component import Component
 import json
-from flask import Flask
+from flask import Flask, request
 import time
 
 
@@ -12,7 +17,7 @@ class TestThing(Component):
         self.add_output('Output1', val=0.0)
 
     def solve_nonlinear(self, params, unknowns, resids):
-        #time.sleep(0.5)
+        # time.sleep(0.5)
         unknowns['Output1'] = params['Param1']
 
 
@@ -28,16 +33,33 @@ def list_components():
 
 @app.route('/<component_id>/interface')
 def interface(component_id):
-    return json.dumps(interface_descriptions[component_id])
+    description = interface_descriptions.get(component_id)
+    if description is None:
+        return '{} is not known'.format(component_id), 404
+    return json.dumps(interface_descriptions)
 
 
 @app.route('/<component_id>/solve_nonlinear/<submission_data>')
 def solve_nonlinear(component_id, submission_data):
-    start_time = time.time()
-
     params = json.loads(str(submission_data))
+    start_time = time.time()
     unknowns = dict()
     thecomponent = components[component_id]
+    thecomponent.solve_nonlinear(params, unknowns, dict())
+
+    elapsed_time = time.time() - start_time
+
+    return json.dumps({'unknowns': unknowns, 'metadata': {'execution_time': elapsed_time}})
+
+
+@app.route('/<component_id>/solve_nonlinear', methods=['POST'])
+def solve_nonlinear_post(component_id):
+    params = request.get_json()
+    start_time = time.time()
+    unknowns = dict()
+    thecomponent = components.get(component_id)
+    if thecomponent is None:
+        return '{} is not known'.format(component_id), 404
     thecomponent.solve_nonlinear(params, unknowns, dict())
 
     elapsed_time = time.time() - start_time
@@ -63,4 +85,5 @@ if __name__ == '__main__':
     c = TestThing()
     Add(c, 'test_thing')
 
+    # app.run(debug=True)
     app.run()
