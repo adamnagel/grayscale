@@ -1,6 +1,6 @@
 '''
-curl http://localhost:5000/test_thing/interface
-curl --data '{"Param1": 1, "a_string": "x"}' -H 'Content-Type:application/json;charset=UTF-8' http://localhost:5000/test_thing/solve_nonlinear
+curl http://localhost:5000/example2/interface
+curl --data '{"Param1": 1, "a_string": "x"}' -H 'Content-Type:application/json;charset=UTF-8' http://localhost:5000/example2/solve_nonlinear
 '''
 
 from openmdao.core.component import Component
@@ -22,6 +22,18 @@ class TestThing(Component):
         time.sleep(0.5)
         unknowns['Output1'] = params['Param1'] + 2
         unknowns['a_string_twice'] = params['a_string'] * 2
+
+
+class OriginalTestThing(Component):
+    def __init__(self):
+        super(OriginalTestThing, self).__init__()
+
+        self.add_param('Param1', val=0.5, units='m')
+        self.add_output('Output1', val=0.0)
+
+    def solve_nonlinear(self, params, unknowns, resids):
+        time.sleep(0.5)
+        unknowns['Output1'] = params['Param1']
 
 
 app = Flask(__name__)
@@ -85,8 +97,8 @@ def Add(component, component_id):
 
 
 if __name__ == '__main__':
-    c = TestThing()
-    Add(c, 'test_thing')
+    Add(TestThing(), 'example2')
+    Add(OriginalTestThing(), 'example1')
 
     # app.run(debug=True)
     app.run()
