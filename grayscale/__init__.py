@@ -1,6 +1,6 @@
 '''
 curl http://localhost:5000/test_thing/interface
-curl --data '{"Param1": 1}' -H 'Content-Type:application/json;charset=UTF-8' http://localhost:5000/test_thing/solve_nonlinear
+curl --data '{"Param1": 1, "a_string": "x"}' -H 'Content-Type:application/json;charset=UTF-8' http://localhost:5000/test_thing/solve_nonlinear
 '''
 
 from openmdao.core.component import Component
@@ -75,10 +75,10 @@ def Add(component, component_id):
     iud = component._init_unknowns_dict
     interface_description = {'Parameters': dict(), 'Unknowns': dict()}
     for k, v in ipd.iteritems():
-        interface_description['Parameters']['k'] = v
+        interface_description['Parameters'][k] = v
 
     for k, v in iud.iteritems():
-        interface_description['Unknowns']['k'] = v
+        interface_description['Unknowns'][k] = v
 
     interface_descriptions[component_id] = interface_description
     components[component_id] = component
