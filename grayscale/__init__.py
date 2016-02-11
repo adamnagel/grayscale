@@ -14,11 +14,14 @@ class TestThing(Component):
         super(TestThing, self).__init__()
 
         self.add_param('Param1', val=0.5, units='m')
+        self.add_param('a_string', val='default', pass_by_obj=True)
         self.add_output('Output1', val=0.0)
+        self.add_output('a_string_twice', val='', pass_by_obj=True)
 
     def solve_nonlinear(self, params, unknowns, resids):
-        # time.sleep(0.5)
-        unknowns['Output1'] = params['Param1']
+        time.sleep(0.5)
+        unknowns['Output1'] = params['Param1'] + 2
+        unknowns['a_string_twice'] = params['a_string'] * 2
 
 
 app = Flask(__name__)
