@@ -54,28 +54,18 @@ def interface(component_id):
     return json.dumps(interface_descriptions)
 
 
-@app.route('/<component_id>/solve_nonlinear/<submission_data>')
-def solve_nonlinear(component_id, submission_data):
-    params = json.loads(str(submission_data))
-    start_time = time.time()
-    unknowns = dict()
-    thecomponent = components[component_id]
-    thecomponent.solve_nonlinear(params, unknowns, dict())
-
-    elapsed_time = time.time() - start_time
-
-    return json.dumps({'unknowns': unknowns, 'metadata': {'execution_time': elapsed_time}})
-
-
 @app.route('/<component_id>/solve_nonlinear', methods=['POST'])
-def solve_nonlinear_post(component_id):
+def solve_nonlinear(component_id):
     params = request.get_json()
     start_time = time.time()
     unknowns = dict()
-    thecomponent = components.get(component_id)
-    if thecomponent is None:
+    component = components.get(component_id)
+    if component is None:
         return '{} is not known'.format(component_id), 404
-    thecomponent.solve_nonlinear(params, unknowns, dict())
+    for param in component._init_params_dict:
+        if param not in params:
+            return 'Parameter {} must be specified'.format(param), 400
+    component.solve_nonlinear(params, unknowns, dict())
 
     elapsed_time = time.time() - start_time
 
